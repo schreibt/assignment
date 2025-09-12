@@ -85,7 +85,7 @@ const features = [
   { name: "ELEVENREADER", icon: Headphones, active: false },
 ];
 
-export default function ElevenLabsLandingPage() {
+export function ElevenLabsLandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
