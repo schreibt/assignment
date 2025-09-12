@@ -1,7 +1,78 @@
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, Play, Download, Volume2, Bot, Music, Mic, Globe, Copy, Headphones } from "lucide-react";
+
+// Language Dropdown Component
+function LanguageDropdown() {
+  const languages = [
+    { code: 'en', name: 'ENGLISH', flag: '🇺🇸' },
+    { code: 'es', name: 'ESPAÑOL', flag: '🇪🇸' },
+    { code: 'fr', name: 'FRANÇAIS', flag: '🇫🇷' },
+    { code: 'de', name: 'DEUTSCH', flag: '🇩🇪' },
+    { code: 'it', name: 'ITALIANO', flag: '🇮🇹' },
+    { code: 'pt', name: 'PORTUGUÊS', flag: '🇵🇹' },
+    { code: 'ru', name: 'РУССКИЙ', flag: '🇷🇺' },
+    { code: 'ja', name: '日本語', flag: '🇯🇵' },
+    { code: 'ko', name: '한국어', flag: '🇰🇷' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' }
+  ];
+
+  interface Language {
+  code: string;
+  name: string;
+  flag: string;
+}
+
+  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleLanguageSelect = (language:Language) => {
+    setSelectedLanguage(language);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative inline-block">
+      <Button
+        variant="ghost"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center space-x-2"
+      >
+        <span className="text-lg">{selectedLanguage.flag}</span>
+        <span className="text-sm font-medium">{selectedLanguage.name}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </Button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+          {languages.map((language) => (
+            <button
+              key={language.code}
+              onClick={() => handleLanguageSelect(language)}
+              className={`w-full flex items-center space-x-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors duration-150 ${
+                selectedLanguage.code === language.code ? 'bg-blue-50 text-blue-600' : ''
+              }`}
+            >
+              <span className="text-lg">{language.flag}</span>
+              <span className="text-sm font-medium">{language.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
 
 // Helper array for the features list for cleaner code
 const features = [
@@ -14,7 +85,7 @@ const features = [
   { name: "ELEVENREADER", icon: Headphones, active: false },
 ];
 
-export function ElevenLabsLandingPage() {
+export default function ElevenLabsLandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -111,11 +182,7 @@ export function ElevenLabsLandingPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <Button variant="ghost" className="flex items-center space-x-2">
-                    <span className="text-lg">🇺🇸</span>
-                    <span className="text-sm font-medium">ENGLISH</span>
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
+                  <LanguageDropdown />
                   <div className="flex items-center space-x-2">
                     <Button size="lg" className="flex items-center space-x-2 px-6">
                       <Play className="h-5 w-5" />
