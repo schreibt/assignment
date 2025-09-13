@@ -1,37 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Play, Download, Volume2, Bot, Music, Mic, Globe, Copy, Headphones } from "lucide-react";
+import { ChevronDown, Play, Pause, Download, Volume2, Bot, Music, Mic, Globe, Copy, Headphones } from "lucide-react";
 
-// Language Dropdown Component
-function LanguageDropdown() {
-  const languages = [
-    { code: 'en', name: 'ENGLISH', flag: '🇺🇸' },
-    { code: 'es', name: 'ESPAÑOL', flag: '🇪🇸' },
-    { code: 'fr', name: 'FRANÇAIS', flag: '🇫🇷' },
-    { code: 'de', name: 'DEUTSCH', flag: '🇩🇪' },
-    { code: 'it', name: 'ITALIANO', flag: '🇮🇹' },
-    { code: 'pt', name: 'PORTUGUÊS', flag: '🇵🇹' },
-    { code: 'ru', name: 'РУССКИЙ', flag: '🇷🇺' },
-    { code: 'ja', name: '日本語', flag: '🇯🇵' },
-    { code: 'ko', name: '한국어', flag: '🇰🇷' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-    { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' }
-  ];
+const languages = [
+  { code: 'en', name: 'ENGLISH', flag: '🇺🇸' },
+  { code: 'es', name: 'ESPAÑOL', flag: '🇪🇸' },
+  { code: 'fr', name: 'FRANÇAIS', flag: '🇫🇷' },
+  { code: 'de', name: 'DEUTSCH', flag: '🇩🇪' },
+  { code: 'it', name: 'ITALIANO', flag: '🇮🇹' },
+  { code: 'pt', name: 'PORTUGUÊS', flag: '🇵🇹' },
+  { code: 'ru', name: 'РУССКИЙ', flag: '🇷🇺' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' }
+];
 
-  interface Language {
+interface Language {
   code: string;
   name: string;
   flag: string;
 }
 
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+// Language Dropdown Component
+function LanguageDropdown({ selectedLanguage, onLanguageSelect }: {
+  selectedLanguage: Language;
+  onLanguageSelect: (language: Language) => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleLanguageSelect = (language:Language) => {
-    setSelectedLanguage(language);
+  const handleLanguageSelect = (language: Language) => {
+    onLanguageSelect(language);
     setIsOpen(false);
   };
 
@@ -48,7 +50,7 @@ function LanguageDropdown() {
       </Button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+        <div className="absolute bottom-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
           {languages.map((language) => (
             <button
               key={language.code}
@@ -86,6 +88,39 @@ const features = [
 ];
 
 export function ElevenLabsLandingPage() {
+  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const [audioUrl, setAudioUrl] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const fetchAudioUrl = async () => {
+      try {
+        const response = await fetch(`/api/getAudio?language=${selectedLanguage.name}`);
+        const data = await response.json();
+          if (response.ok) {
+          setAudioUrl(data.url);
+          setIsPlaying(false); // Reset on new language selection
+        }   else {
+              console.error(data.message);
+        }
+      } catch (error) {
+        console.error('Failed to fetch audio URL', error);
+      }
+    };
+
+    fetchAudioUrl();
+  }, [selectedLanguage]);
+
+    const togglePlayPause = () => {
+    if (isPlaying) {
+      audioRef.current?.pause();
+    } else {
+      audioRef.current?.play().catch(e => console.error("Playback failed", e));
+    }
+    setIsPlaying(!isPlaying);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -182,11 +217,13 @@ export function ElevenLabsLandingPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <LanguageDropdown />
+                  <LanguageDropdown                   
+                  selectedLanguage={selectedLanguage}
+                  onLanguageSelect={setSelectedLanguage}/>
                   <div className="flex items-center space-x-2">
-                    <Button size="lg" className="flex items-center space-x-2 px-6">
-                      <Play className="h-5 w-5" />
-                      <span>PLAY</span>
+                    <Button size="lg" className="flex items-center space-x-2 px-6" onClick={togglePlayPause} disabled={!audioUrl}>
+                      {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                      <span>{isPlaying ? 'PAUSE' : 'PLAY'}</span>
                     </Button>
                     <Button size="lg" variant="ghost">
                       <Download className="h-5 w-5" />
